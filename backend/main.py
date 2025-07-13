@@ -5,6 +5,7 @@ from pathlib import Path
 from chroma.client import chroma_client
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from services.document_loader import load_pdf_documents
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
@@ -24,7 +25,7 @@ async def lifespan(app: FastAPI):
 
         if pdf_path.exists() and list(pdf_path.glob("*.pdf")):
             logger.info("📄 Carregando documentos PDF...")
-            chroma_client.insert_documents(pdf_dir)
+            load_pdf_documents(pdf_dir)
 
             # Verificar quantos chunks foram indexados
             collection = chroma_client.get_or_create_collection()

@@ -4,7 +4,6 @@ from typing import Mapping, Optional
 import chromadb
 import chromadb.utils.embedding_functions as embedding_functions
 from chromadb.config import Settings
-from utils.documents import generate_document_id, split_pdf
 
 
 class ChromaClient:
@@ -51,42 +50,6 @@ class ChromaClient:
         except Exception as e:
             print(f"Error getting document {document_id}: {e}")
             return None
-
-    def insert_documents(self, pdf_dir: str):
-        pdf_paths = [str(p) for p in Path(pdf_dir).glob("*.pdf")]
-
-        for path in pdf_paths:
-            document_id = generate_document_id(path)
-            filename = Path(path).name
-
-            existing = self.collection.get(where={"document_id": document_id}, limit=1)
-
-            if existing["ids"]:
-                print(f"Document {filename} already exists")
-                continue
-
-            try:
-                docs = split_pdf(path)
-
-                ids = [f"{document_id}-chunk-{i}" for i in range(len(docs))]
-                metadata = [
-                    {
-                        "document_id": document_id,
-                        "chunk_index": i,
-                        "filename": filename,
-                        "source": path,
-                    }
-                    for i in range(len(docs))
-                ]
-
-                self.collection.add(documents=docs, ids=ids, metadatas=metadata)
-
-                print(
-                    f"Document {document_id} inserted successfully with filename {filename}"
-                )
-
-            except Exception as e:
-                print(f"Error inserting document {filename}: {e}")
 
     def search_similar(
         self, query: str, n_results: int = 5, filename: Optional[str] = None
