@@ -5,7 +5,7 @@ Backend do projeto de chatbot de IA para e-commerce construído com FastAPI, Lan
 ## 🚀 Configuração do Ambiente
 
 ### 1. Ambiente Virtual
-O projeto usa `uv` como gerenciador de pacotes. O ambiente virtual já está configurado em `.venv/`.
+O projeto usa `uv` como gerenciador de pacotes. 
 
 ### 2. Dependências
 As dependências principais incluem:
@@ -18,11 +18,6 @@ As dependências principais incluem:
 ### 3. Instalação
 
 ```bash
-# Ativar ambiente virtual
-source .venv/bin/activate  # Linux/Mac
-# ou
-.venv\Scripts\activate     # Windows
-
 # Instalar dependências com uv
 uv sync
 
