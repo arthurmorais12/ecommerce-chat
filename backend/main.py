@@ -2,6 +2,7 @@ import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+from api.schemas.health import HealthResponse
 from chroma.client import chroma_client
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -68,9 +69,9 @@ async def root():
     return {"message": "E-commerce Chat API is running!"}
 
 
-@app.get("/health")
+@app.get("/health", response_model=HealthResponse)
 async def health_check():
-    return {"status": "healthy"}
+    return HealthResponse()
 
 
 if __name__ == "__main__":
