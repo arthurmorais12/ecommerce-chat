@@ -6,7 +6,7 @@ from api.schemas.health import HealthResponse
 from chroma.client import chroma_client
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from services.document_loader import load_pdf_documents
+from services.ingest import load_pdf_documents
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
