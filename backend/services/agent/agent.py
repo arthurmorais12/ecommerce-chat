@@ -14,7 +14,7 @@ load_dotenv()
 class Agent:
     def __init__(self, thread_id: str = None):
         self.model = init_chat_model(
-            model="llama-3.1-8b-instant", model_provider="groq"
+            model="gemini-2.5-flash-lite-preview-06-17", model_provider="google_genai"
         )
         self.db_path = "chat_memory.db"
         self.tools = tools
@@ -74,5 +74,5 @@ class Agent:
 
     @classmethod
     def build(cls, thread_id: str = None):
-        """Factory method para criar instância (não precisa mais ser async!)"""
+        """Factory method para criar instância"""
         return cls(thread_id=thread_id)
