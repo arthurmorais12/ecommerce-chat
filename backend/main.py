@@ -2,10 +2,12 @@ import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+from api.endpoints import chat
 from api.schemas.health import HealthResponse
 from chroma.client import chroma_client
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from services import Agent
 from services.ingest import load_pdf_documents
 
 # Configurar logging
@@ -39,6 +41,9 @@ async def lifespan(app: FastAPI):
         logger.error(f"❌ Erro ao carregar documentos: {e}")
         # Não falhar a inicialização, apenas logar o erro
 
+    agent_instance = Agent()
+    app.state.agent = agent_instance
+
     logger.info("🎉 API inicializada com sucesso!")
 
     yield  # API está rodando
@@ -62,6 +67,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(chat.router, prefix="/chat", tags=["Chat"])
 
 
 @app.get("/")

@@ -209,3 +209,4 @@ __marimo__/
 .cursor/
 emb/
 chat_memory.db
+run_test_cli.py
