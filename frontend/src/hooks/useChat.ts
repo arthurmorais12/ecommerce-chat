@@ -1,83 +1,120 @@
-import { useState, useCallback } from "react";
-import { chatService } from "@/services/chat";
-import type { ChatMessage, ChatResponse } from "@/services/chat";
+import { useState, useCallback, useEffect, useRef } from "react";
+import type { Message, StreamEvent } from "@/types";
+import { startChatStream } from "@/services/chat";
+
+const getUserId = (): string => {
+  let userId = localStorage.getItem("chat_user_id");
+  if (!userId) {
+    userId = crypto.randomUUID();
+    localStorage.setItem("chat_user_id", userId);
+  }
+  return userId;
+};
 
 export const useChat = () => {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [conversationId, setConversationId] = useState<string | null>(null);
 
-  const sendMessage = useCallback(
-    async (message: string) => {
-      if (!message.trim()) return;
+  const abortControllerRef = useRef<AbortController | null>(null);
 
-      const userMessage: ChatMessage = {
-        id: Date.now().toString(),
-        message,
-        sender: "user",
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, userMessage]);
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const response: ChatResponse = await chatService.sendMessage(
-          message,
-          conversationId || undefined
-        );
-
-        if (response.conversation_id && !conversationId) {
-          setConversationId(response.conversation_id);
-        }
-
-        const assistantMessage: ChatMessage = {
-          id: (Date.now() + 1).toString(),
-          message: response.message,
-          sender: "assistant",
-          timestamp: new Date(),
-        };
-
-        setMessages((prev) => [...prev, assistantMessage]);
-      } catch (err) {
-        setError("Erro ao enviar mensagem. Tente novamente.");
-        console.error("Chat error:", err);
-      } finally {
-        setIsLoading(false);
-      }
+  const handleInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      setInput(e.target.value);
     },
-    [conversationId]
+    []
   );
 
-  const clearChat = useCallback(() => {
-    setMessages([]);
-    setConversationId(null);
-    setError(null);
-  }, []);
+  const sendMessage = useCallback(
+    async (e?: React.FormEvent<HTMLFormElement>) => {
+      e?.preventDefault();
+      if (!input.trim() || isLoading) return;
 
-  const loadConversationHistory = useCallback(async (id: string) => {
-    setIsLoading(true);
-    try {
-      const history = await chatService.getConversationHistory(id);
-      setMessages(history);
-      setConversationId(id);
-    } catch (err) {
-      setError("Erro ao carregar histórico da conversa.");
-      console.error("Load history error:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+      abortControllerRef.current?.abort();
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
 
+      const userMessage: Message = {
+        id: crypto.randomUUID(),
+        role: "user",
+        content: input,
+      };
+
+      let assistantMessageId = crypto.randomUUID();
+      const assistantMessage: Message = {
+        id: assistantMessageId,
+        role: "assistant",
+        content: "",
+      };
+
+      setMessages((prev) => [...prev, userMessage, assistantMessage]);
+      setInput("");
+      setError(null);
+
+      const userId = getUserId();
+
+      await startChatStream(
+        input,
+        userId,
+        {
+          onOpen: () => {
+            setIsLoading(true);
+          },
+          onMessage: (event: StreamEvent) => {
+            switch (event.type) {
+              case "start":
+                break;
+              case "content":
+                setMessages((prev) =>
+                  prev.map((msg) =>
+                    msg.id === assistantMessageId
+                      ? { ...msg, content: msg.content + event.data }
+                      : msg
+                  )
+                );
+                break;
+              case "error":
+                setError(`Erro do assistante: ${event.data}`);
+                setMessages((prev) =>
+                  prev.filter((msg) => msg.id !== assistantMessageId)
+                );
+                break;
+              case "end":
+                break;
+            }
+          },
+          onError: (err) => {
+            console.error("Erro na conexão fetch/stream: ", err);
+            setError(
+              "Não foi possível conectar ao assistente. Tente novamente mais tarde."
+            );
+            setMessages((prev) =>
+              prev.filter((msg) => msg.id !== assistantMessageId)
+            );
+          },
+          onClose: () => {
+            setIsLoading(false);
+            abortControllerRef.current = null;
+          },
+        },
+        controller.signal
+      );
+    },
+    [input, isLoading]
+  );
+
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, []);
   return {
     messages,
+    input,
     isLoading,
     error,
-    conversationId,
+    handleInputChange,
     sendMessage,
-    clearChat,
-    loadConversationHistory,
   };
 };
