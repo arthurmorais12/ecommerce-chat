@@ -4,7 +4,7 @@ import remarkGfm from "remark-gfm";
 
 import type { Message } from "../../types";
 import { Avatar, AvatarFallback } from "../ui/avatar";
-import { cn } from "../../lib/utils";
+import { cn } from "@/lib/utils";
 
 interface ChatMessageProps {
   message: Message;
