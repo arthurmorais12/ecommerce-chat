@@ -21,25 +21,27 @@ async def lifespan(app: FastAPI):
     # 🚀 STARTUP
     logger.info("🚀 Iniciando E-commerce Chat API...")
 
-    try:
-        # Verificar se há PDFs para carregar
-        pdf_dir = "./pdfs"
-        pdf_path = Path(pdf_dir)
+    # Upload ./emb for github to deploy. To add your documents, uncomment here.
 
-        if pdf_path.exists() and list(pdf_path.glob("*.pdf")):
-            logger.info("📄 Carregando documentos PDF...")
-            load_pdf_documents(pdf_dir)
+    # try:
+    #     # Verificar se há PDFs para carregar
+    #     pdf_dir = "./pdfs"
+    #     pdf_path = Path(pdf_dir)
 
-            # Verificar quantos chunks foram indexados
-            collection = chroma_client.get_or_create_collection()
-            total_chunks = collection.count()
-            logger.info(f"✅ {total_chunks} chunks indexados com sucesso!")
-        else:
-            logger.warning("⚠️ Nenhum PDF encontrado em ./pdfs/")
+    #     if pdf_path.exists() and list(pdf_path.glob("*.pdf")):
+    #         logger.info("📄 Carregando documentos PDF...")
+    #         load_pdf_documents(pdf_dir)
 
-    except Exception as e:
-        logger.error(f"❌ Erro ao carregar documentos: {e}")
-        # Não falhar a inicialização, apenas logar o erro
+    #         # Verificar quantos chunks foram indexados
+    #         collection = chroma_client.get_or_create_collection()
+    #         total_chunks = collection.count()
+    #         logger.info(f"✅ {total_chunks} chunks indexados com sucesso!")
+    #     else:
+    #         logger.warning("⚠️ Nenhum PDF encontrado em ./pdfs/")
+
+    # except Exception as e:
+    #     logger.error(f"❌ Erro ao carregar documentos: {e}")
+    #     # Não falhar a inicialização, apenas logar o erro
 
     agent_instance = Agent()
     app.state.agent = agent_instance
@@ -62,7 +64,11 @@ app = FastAPI(
 # Configurar CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Frontend
+    allow_origins=[
+        "http://localhost:5173",  # Frontend local
+        "https://*.vercel.app",  # Vercel
+        "https://vercel.app",  # Vercel principal
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
