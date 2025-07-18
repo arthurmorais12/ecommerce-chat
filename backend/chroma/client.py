@@ -1,9 +1,13 @@
+import os
 from pathlib import Path
 from typing import Mapping, Optional
 
 import chromadb
-import chromadb.utils.embedding_functions as embedding_functions
 from chromadb.config import Settings
+from chromadb.utils import embedding_functions
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class ChromaClient:
@@ -18,11 +22,14 @@ class ChromaClient:
             settings=Settings(anonymized_telemetry=False, allow_reset=True),
         )
 
-        # Configurar embedding function explicitamente
-        self.embedding_function = (
-            embedding_functions.SentenceTransformerEmbeddingFunction(
-                model_name="all-MiniLM-L6-v2"
+        api_key = os.getenv("GOOGLE_API_KEY")
+        if not api_key:
+            raise ValueError(
+                "Chave da API do Google não encontrada. Defina GOOGLE_API_KEY no seu arquivo .env"
             )
+
+        self.embedding_function = (
+            embedding_functions.GoogleGenerativeAiEmbeddingFunction(api_key=api_key)
         )
 
         self.collection = self.client.get_or_create_collection(
@@ -65,4 +72,5 @@ class ChromaClient:
         return results
 
 
+# O código abaixo permanece igual
 chroma_client = ChromaClient()
