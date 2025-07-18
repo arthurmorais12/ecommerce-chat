@@ -3,11 +3,9 @@ import type { Message, StreamEvent } from "@/types";
 import { startChatStream } from "@/services/chat";
 
 const getUserId = (): string => {
-  let userId = localStorage.getItem("chat_user_id");
-  if (!userId) {
-    userId = crypto.randomUUID();
-    localStorage.setItem("chat_user_id", userId);
-  }
+  // Sempre gerar um novo user_id para invalidar a sessão anterior
+  const userId = crypto.randomUUID();
+  localStorage.setItem("chat_user_id", userId);
   return userId;
 };
 
