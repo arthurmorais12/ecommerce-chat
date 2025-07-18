@@ -1,4 +1,5 @@
 import logging
+import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -60,9 +61,14 @@ app = FastAPI(
 )
 
 # Configurar CORS
+vercel_url = os.getenv("VERCEL_URL", "https://ecommerce-chat-beta.vercel.app")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Frontend
+    allow_origins=[
+        "http://localhost:5173",  # Frontend local
+        vercel_url,  # Frontend Vercel
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
