@@ -5,6 +5,7 @@ Um chatbot conversacional para vendas de produtos eletrônicos, construído com 
 ## 🚀 Demo
 
 **Frontend**: [https://ecommerce-chat-beta.vercel.app/](https://ecommerce-chat-beta.vercel.app/)
+**Nota: pela instância do backend ser gratuita, na primeira mensagem haverá um delay de 50 segundos para a resposta. Mensagens subsequentes funcionarão normalmente."
 
 ## 🛠️ Tecnologias
 
